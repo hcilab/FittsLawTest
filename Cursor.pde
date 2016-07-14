@@ -19,4 +19,13 @@ class Cursor{
     fill(0); // black text
     text(text, x, y-5);
   }
+  
+  public void move(){
+    if(direction == Direction.RIGHT && cursor.x < width){  
+      cursor.x=cursor.x + speed;
+    }
+    else if (direction == Direction.LEFT && cursor.x > 0){
+      cursor.x = cursor.x - speed;
+    }
+  }
 }
