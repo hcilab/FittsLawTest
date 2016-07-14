@@ -3,15 +3,23 @@ enum Selection {
   DWELL,
 }
 
+enum Direction{
+  NONE,
+  LEFT,
+  RIGHT,
+}
+
 PFont font;
 Rectangle leftRect;
 Rectangle rightRect;
 Cursor cursor;
 Direction direction;
-boolean isDwellTime;
 int speed;
 boolean spacePressed;
 long startTimeInsideRect;
+boolean stayGreen;
+Rectangle nextRec;
+Rectangle prevRec;
 
 // Data to be read in from loadTrialInfo();
 Table trialInfos;
@@ -24,11 +32,6 @@ int rectDist;
 boolean practice;
 Selection selectionType;
 
-public enum Direction{
-  NONE,
-  LEFT,
-  RIGHT,
-}
 
 void setup() {
   fullScreen();
@@ -39,7 +42,6 @@ void setup() {
   
   direction = Direction.NONE;
   speed = 5;
-  isDwellTime = true;
   
   font = createFont("Helvetica", 30);
   textFont(font);
@@ -57,76 +59,49 @@ void setup() {
 
   generateRectangles();
   cursor = new Cursor(width/2,height/2,"+",10);
+  nextRec = leftRect;
+  prevRec = rightRect;
+  stayGreen = false;
 }
 
 void draw() {
   background(255);
   
-  if(isDwellTime){
+  if(Selection.DWELL == selectionType){
     checkDwellTime();
   }
-  else if(rightRect.inRect){
-    leftRect.draw(255,255,255);
-    rightRect.draw(0,255,0);
-  }  
-  else if(leftRect.inRect){
-    leftRect.draw(0,255,0);
-    rightRect.draw(255,255,255);
+
+  if(prevRec.isCursorInside() && stayGreen){
+    prevRec.draw(0,255,0);
+    nextRec.draw(255,255,255);
   }
-  else {
-    leftRect.draw(255,255,255);
-    rightRect.draw(255,255,255);
+  else{
+    stayGreen = false;
+    prevRec.draw(255,255,255);
+    nextRec.draw(255,255,255);
   }
     
-
   cursor.move();
   cursor.draw(255,255,255);
 }
 
 void spaceClicked(){
-  if(leftRect.isCursorInside()){
-    leftRect.draw(0,255,0);
-    rightRect.draw(255,255,255);
-    leftRect.inRect = true;
+  if(nextRec.isCursorInside()){
+     nextRectangle();
   }
-  else if(rightRect.isCursorInside()){
-    leftRect.draw(255,255,255);
-    rightRect.draw(0,255,0);
-    rightRect.inRect = true;
-  }
-  else{
-    leftRect.draw(255,255,255);
-    rightRect.draw(255,255,255);
-  } 
 }
 
 void checkDwellTime(){
-  if(leftRect.isCursorInside() && !leftRect.inRect){
-    leftRect.inRect = true;
+  if(nextRec.isCursorInside() && !nextRec.inRect){
+    nextRec.inRect = true;
     startTimeInsideRect = System.currentTimeMillis();
   }
-  else if(rightRect.isCursorInside() && !rightRect.inRect){
-    rightRect.inRect = true;
-    startTimeInsideRect = System.currentTimeMillis();
-  }
-  else if(!leftRect.isCursorInside() && !rightRect.isCursorInside()){
-    leftRect.inRect = false;
-    rightRect.inRect = false;
+  else if(!nextRec.isCursorInside()){
+    nextRec.inRect = false;
   }
  
-  if(isDwellTime && ((System.currentTimeMillis() - startTimeInsideRect) > 2000) && (leftRect.inRect || rightRect.inRect)){ 
-    if(leftRect.inRect){
-      leftRect.draw(0,255,0);
-      rightRect.draw(255,255,255);
-    }
-    else if(rightRect.inRect){
-      leftRect.draw(255,255,255);
-      rightRect.draw(0,255,0);
-    }
-  }
-  else{
-    leftRect.draw(255,255,255);
-    rightRect.draw(255,255,255);
+  if(((System.currentTimeMillis() - startTimeInsideRect) > 2000) && nextRec.inRect){
+    nextRectangle();
   }
 }
 
@@ -135,10 +110,23 @@ void generateRectangles(){
   rightRect = new Rectangle((width/2+rectDist/2),height/2,rectWidth);
 }
 
+void nextRectangle(){
+   stayGreen = true;
+  if(nextRec.equals(leftRect)){
+    prevRec = leftRect;
+    nextRec= rightRect; 
+  }
+  else{
+    prevRec = rightRect;
+    nextRec = leftRect;
+  }
+}
+
 void keyPressed(){
   if(key == ' '){
-    if(!isDwellTime)
+    if(!(Selection.DWELL == selectionType)){
       spaceClicked(); 
+    }
   }
   if (key == CODED)
   { 
