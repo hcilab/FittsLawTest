@@ -1,9 +1,25 @@
+enum Selection {
+  KEY_PRESS,
+  DWELL,
+}
+
 PFont font;
 Rectangle leftRect;
 Rectangle RighttRect;
 Cursor cursor;
 Direction direction;
 int speed;
+
+// Data to be read in from loadTrialInfo();
+Table trialInfos;
+TableRow trialInfoRow;
+int rowIndex;
+int rowCount;
+int numTrials;
+int rectWidth;
+int rectDist;
+boolean practice;
+Selection selectionType;
 
 public enum Direction{
   NONE,
@@ -23,7 +39,18 @@ void setup() {
   
   font = createFont("Helvetica", 30);
   textFont(font);
-  
+
+  trialInfos = loadTrialInfo();
+  rowCount = trialInfos.getRowCount();
+  rowIndex = 0;
+  trialInfoRow = trialInfos.getRow(rowIndex);
+  if (trialInfoRow != null) {
+    getNewRowData();
+  } else {
+    println("[ERROR] There were no rows of data in the trial_info.csv file. Exiting program.");
+    exit();
+  }
+
   generateRectangles();
   cursor = new Cursor(width/2,height/2,"+",10);
 }
@@ -47,8 +74,8 @@ void draw() {
 }
 
 void generateRectangles(){
-  leftRect = new Rectangle(100,height/2,50);
-  RighttRect = new Rectangle(width-100,height/2,50);
+  leftRect = new Rectangle((width/2-rectDist/2),height/2,rectWidth);
+  RighttRect = new Rectangle((width/2+rectDist/2),height/2,rectWidth);
 }
 
 void keyPressed()
@@ -88,4 +115,28 @@ void keyReleased()
         return;
     }
   }
+}
+
+Table loadTrialInfo() {
+  if (fileExists("trial_info.csv")) {
+    return loadTable("trial_info.csv", "header, csv");
+  }
+  println("[ERROR] No file named 'trial_info.csv', could not load info to run tests.");
+  return null;
+}
+
+boolean fileExists(String filename) {
+  File file = new File(sketchPath(filename));
+  if (!file.exists()) {
+    return false;
+  }
+  return true;
+}
+
+void getNewRowData() {
+  numTrials = trialInfoRow.getInt("trials");
+  rectWidth = trialInfoRow.getInt("width");
+  rectDist = trialInfoRow.getInt("distance");
+  practice = trialInfoRow.getString("practice").equals("true") ? true : false;
+  selectionType = trialInfoRow.getString("selection").equals("dwell") ? Selection.DWELL : Selection.KEY_PRESS;
 }
