@@ -260,5 +260,5 @@ void reset() {
 }
 
 void mouseMoved() {
-  cursor.followMouse(mouseX, mouseY);
+  cursor.followMouse(mouseX);
 }

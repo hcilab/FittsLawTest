@@ -31,8 +31,7 @@ class Cursor{
     }
   }
 
-  public void followMouse(int x, int y) {
+  public void followMouse(int x) {
     this.x = x;
-    this.y = y;
   }
 }
