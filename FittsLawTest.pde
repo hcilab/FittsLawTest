@@ -18,8 +18,8 @@ int speed;
 boolean spacePressed;
 long startTimeInsideRect;
 boolean stayGreen;
-Rectangle nextRec;
-Rectangle prevRec;
+Rectangle nextRect;
+Rectangle prevRect;
 
 // Data to be read in from loadTrialInfo();
 Table trialInfos;
@@ -32,6 +32,16 @@ int rectDist;
 boolean practice;
 Selection selectionType;
 
+// Data to be saved at the end of all trials;
+Table logData;
+TableRow resultsRow;
+long tod;
+long startTime;
+int count;
+String username="";
+
+// hit left bar before starting timer and logging
+boolean hitLeftFirst;
 
 void setup() {
   fullScreen();
@@ -49,36 +59,45 @@ void setup() {
   trialInfos = loadTrialInfo();
   rowCount = trialInfos.getRowCount();
   rowIndex = 0;
-  trialInfoRow = trialInfos.getRow(rowIndex);
-  if (trialInfoRow != null) {
+  if (rowIndex < rowCount) {
+    trialInfoRow = trialInfos.getRow(rowIndex);
     getNewRowData();
+    rowIndex++;
   } else {
     println("[ERROR] There were no rows of data in the trial_info.csv file. Exiting program.");
     exit();
   }
 
+  setupLogTable();
+
   generateRectangles();
   cursor = new Cursor(width/2,height/2,"+",10);
-  nextRec = leftRect;
-  prevRec = rightRect;
+  nextRect = leftRect;
+  prevRect = rightRect;
   stayGreen = false;
+  count = 0;
+  hitLeftFirst = false;
+  tod = System.currentTimeMillis();
 }
 
 void draw() {
   background(255);
-  
+
+  if (count >= numTrials) {
+    reset();
+  }
+
   if(Selection.DWELL == selectionType){
     checkDwellTime();
   }
 
-  if(prevRec.isCursorInside() && stayGreen){
-    prevRec.draw(0,255,0);
-    nextRec.draw(255,255,255);
-  }
-  else{
+  if(prevRect.isCursorInside() && stayGreen){
+    prevRect.draw(0,255,0);
+    nextRect.draw(255,255,255);
+  } else{
     stayGreen = false;
-    prevRec.draw(255,255,255);
-    nextRec.draw(255,255,255);
+    prevRect.draw(255,255,255);
+    nextRect.draw(255,255,255);
   }
     
   cursor.move();
@@ -86,21 +105,21 @@ void draw() {
 }
 
 void spaceClicked(){
-  if(nextRec.isCursorInside()){
+  if(nextRect.isCursorInside()){
      nextRectangle();
   }
 }
 
 void checkDwellTime(){
-  if(nextRec.isCursorInside() && !nextRec.inRect){
-    nextRec.inRect = true;
+  if(nextRect.isCursorInside() && !nextRect.inRect){
+    nextRect.inRect = true;
     startTimeInsideRect = System.currentTimeMillis();
   }
-  else if(!nextRec.isCursorInside()){
-    nextRec.inRect = false;
+  else if(!nextRect.isCursorInside()){
+    nextRect.inRect = false;
   }
  
-  if(((System.currentTimeMillis() - startTimeInsideRect) > 2000) && nextRec.inRect){
+  if(((System.currentTimeMillis() - startTimeInsideRect) > 2000) && nextRect.inRect){
     nextRectangle();
   }
 }
@@ -111,14 +130,29 @@ void generateRectangles(){
 }
 
 void nextRectangle(){
-   stayGreen = true;
-  if(nextRec.equals(leftRect)){
-    prevRec = leftRect;
-    nextRec= rightRect; 
+  stayGreen = true;
+  if(nextRect.equals(leftRect)){
+    prevRect = leftRect;
+    nextRect = rightRect; 
+  } else{
+    prevRect = rightRect;
+    nextRect = leftRect;
   }
-  else{
-    prevRec = rightRect;
-    nextRec = leftRect;
+  
+  long totalTime = System.currentTimeMillis() - startTime;
+  startTime = System.currentTimeMillis();
+  if (!hitLeftFirst) {
+    hitLeftFirst = true;
+  } else {
+    count++;
+    resultsRow = logData.addRow();
+    resultsRow.setLong("tod", tod);
+    resultsRow.setString("username", username);
+    resultsRow.setInt("trial#", rowIndex);
+    resultsRow.setInt("iteration", count);
+    resultsRow.setLong("time", totalTime);
+    resultsRow.setString("practice", Boolean.toString(practice));
+    resultsRow.setString("selection", selectionType.name());
   }
 }
 
@@ -186,4 +220,45 @@ void getNewRowData() {
   rectDist = trialInfoRow.getInt("distance");
   practice = trialInfoRow.getString("practice").equals("true") ? true : false;
   selectionType = trialInfoRow.getString("selection").equals("dwell") ? Selection.DWELL : Selection.KEY_PRESS;
+}
+
+void setupLogTable() {
+  logData = new Table();
+  logData.addColumn("tod");
+  logData.addColumn("username");
+  logData.addColumn("trial#");
+  logData.addColumn("iteration");
+  logData.addColumn("time");
+  logData.addColumn("practice");
+  logData.addColumn("selection");
+}
+
+void logTrialData() {
+  saveTable(logData, "results.csv");
+}
+
+void reset() {
+  count = 0;
+  hitLeftFirst = false;
+  
+  if (rowIndex < rowCount) {
+    trialInfoRow = trialInfos.getRow(rowIndex);
+    
+    if (trialInfoRow != null) {
+      getNewRowData();
+      rowIndex++;
+    } else {
+      println("[ERROR] There were no rows of data in the trial_info.csv file. Exiting program.");
+      exit();
+    }
+    
+    generateRectangles();
+    
+    nextRect = leftRect;
+    prevRect = rightRect;
+    cursor = new Cursor(width/2,height/2,"+",10);
+  } else {
+    logTrialData();
+    exit();
+  }
 }
