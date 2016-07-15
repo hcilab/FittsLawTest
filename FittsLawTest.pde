@@ -1,5 +1,7 @@
 import java.awt.AWTException;
 import java.awt.Robot;
+import de.voidplus.myo.*;
+import java.util.ArrayList;
 
 enum Selection {
   KEY_PRESS,
@@ -12,6 +14,19 @@ enum Direction{
   RIGHT,
 }
 
+enum EmgSamplingPolicy
+{
+  DIFFERENCE,
+  MAX,
+  FIRST_OVER,
+}
+
+IEmgManager emgManager;
+CalibrationMenu calMenu;
+
+final String LEFT_DIRECTION_LABEL = "LEFT";
+final String RIGHT_DIRECTION_LABEL = "RIGHT";
+
 PFont font;
 Rectangle leftRect;
 Rectangle rightRect;
@@ -22,6 +37,8 @@ boolean spacePressed;
 long startTimeInsideRect;
 Rectangle nextRect;
 Rectangle prevRect;
+boolean isCalibration;
+ArrayList<String> registerAction;
 
 // Data to be read in from loadTrialInfo();
 Table trialInfos;
@@ -54,6 +71,14 @@ void setup() {
   rectMode(CENTER);
   shapeMode(CENTER);
   textAlign(CENTER, CENTER);
+  
+  isCalibration = true;
+  emgManager = new NullEmgManager();
+  registerAction = new ArrayList<String>();
+  registerAction.add(LEFT_DIRECTION_LABEL);
+  registerAction.add(RIGHT_DIRECTION_LABEL);
+  //put all the actions that you would like to register in here. LEFT_DIRECTION_LABEL, and RIGHT_DIRECTION_LABEL should be used for now.
+  calMenu = new CalibrationMenu(registerAction);
   
   direction = Direction.NONE;
   speed = 5;
@@ -92,15 +117,18 @@ void setup() {
 
 void draw() {
   background(255);
-
-  if (count >= numTrials) {
-    reset();
+  if(isCalibration){
+    calMenu.draw();
   }
-
-  if(Selection.DWELL == selectionType){
-    checkDwellTime();
-  }
-
+  else{
+    if (count >= numTrials) {
+      reset();
+    }
+  
+    if(Selection.DWELL == selectionType){
+      checkDwellTime();
+    }
+  
   if (!hitLeftFirst) {
     prevRect.draw(255,255,255);
   } else {
@@ -110,6 +138,11 @@ void draw() {
     
   cursor.move();
   cursor.draw(0,0,255);
+  }
+}
+
+void myoOnEmg(Myo myo, long nowMilliseconds, int[] sensorData) {
+  emgManager.onEmg(nowMilliseconds, sensorData);
 }
 
 void spaceClicked(){
@@ -165,7 +198,10 @@ void nextRectangle(){
 
 void keyPressed(){
   if(key == ' '){
-    if(!(Selection.DWELL == selectionType)){
+    if(isCalibration){
+       calMenu.registerAction();
+    }
+    else if(!(Selection.DWELL == selectionType)){
       spaceClicked(); 
     }
   }
@@ -272,4 +308,8 @@ void reset() {
 
 void mouseMoved() {
   cursor.followMouse(mouseX);
+}
+
+void gatherRawInput(){
+  HashMap<String, Float> rawInput = emgManager.poll();
 }
