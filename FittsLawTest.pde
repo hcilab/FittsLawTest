@@ -44,6 +44,7 @@ boolean hitLeftFirst;
 
 void setup() {
   fullScreen();
+  noCursor();
   ellipseMode(CENTER);
   rectMode(CENTER);
   shapeMode(CENTER);
@@ -70,7 +71,7 @@ void setup() {
   setupLogTable();
 
   generateRectangles();
-  cursor = new Cursor(width/2,height/2,"+",10);
+  cursor = new Cursor(width/2,height/2,8);
   nextRect = leftRect;
   prevRect = rightRect;
   count = 0;
@@ -97,7 +98,7 @@ void draw() {
   nextRect.draw(0,255,0);
     
   cursor.move();
-  cursor.draw(255,255,255);
+  cursor.draw(0,0,255);
 }
 
 void spaceClicked(){
@@ -251,9 +252,13 @@ void reset() {
     
     nextRect = leftRect;
     prevRect = rightRect;
-    cursor = new Cursor(width/2,height/2,"+",10);
+    cursor = new Cursor(width/2,height/2,10);
   } else {
     logTrialData();
     exit();
   }
+}
+
+void mouseMoved() {
+  cursor.followMouse(mouseX, mouseY);
 }
