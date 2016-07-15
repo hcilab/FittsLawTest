@@ -14,7 +14,7 @@ enum Direction {
   RIGHT,
 }
 
-enum EmgSamplingPolicy {
+enum EmgSamplingPolicy{
   DIFFERENCE,
   MAX,
   FIRST_OVER,
@@ -24,6 +24,11 @@ enum GameState {
   CALIBRATE,
   TEST,
   PAUSE,
+}
+
+enum CalibrationMethod{
+  MANUAL,
+  AUTO,
 }
 
 IEmgManager emgManager;
@@ -37,12 +42,14 @@ Rectangle leftRect;
 Rectangle rightRect;
 Cursor cursor;
 Direction direction;
-int speed;
+float speed;
 boolean spacePressed;
 long startTimeInsideRect;
 Rectangle nextRect;
 Rectangle prevRect;
 ArrayList<String> registerAction;
+float myoLeftMagnitude;
+float myoRightMagnitude;
 
 // Data to be read in from loadTrialInfo();
 Table trialInfos;
@@ -122,6 +129,7 @@ void draw() {
       break;
     case PAUSE: drawPauseMenu();
       break;
+
   }
 }
 
@@ -183,7 +191,7 @@ void nextRectangle(){
 void keyPressed(){
   if(key == ' '){
     if(gameState == GameState.CALIBRATE){
-       calMenu.registerAction();
+        calMenu.registerLabels();
     }
     else if (gameState == GameState.PAUSE) {
       gameState = GameState.TEST;
@@ -192,6 +200,13 @@ void keyPressed(){
     else if(!(Selection.DWELL == selectionType)){
       spaceClicked(); 
     }
+  }  
+  else if(key == 's'||key =='S'){
+    loadTableData();
+    gameState = GameState.PAUSE;
+  }
+  else if(key == 'm'||key =='M' || key == 'a'||key =='A'){
+      calMenu.chooseMethod(key);
   }
   if (key == CODED)
   { 
@@ -284,11 +299,10 @@ void mouseMoved() {
   cursor.followMouse(mouseX);
 }
 
-void gatherRawInput(){
-  HashMap<String, Float> rawInput = emgManager.poll();
-}
-
 void drawTest() {
+   if(calMenu.isMyoCalibrated())
+      gatherRawInput();
+  
   if (count >= numTrials) {
       gameState = GameState.PAUSE;
       loadTableData();
@@ -342,4 +356,20 @@ void loadTableData() {
     logTrialData();
     exit();
   }
+}
+
+void gatherRawInput(){
+  HashMap<String, Float> rawInput = emgManager.poll();
+   myoLeftMagnitude = rawInput.get(LEFT_DIRECTION_LABEL);
+   myoRightMagnitude = rawInput.get(RIGHT_DIRECTION_LABEL);
+   
+   float result = myoRightMagnitude - myoLeftMagnitude;
+   if(result > 0.1 )
+     direction = Direction.RIGHT;
+   else if(result < -0.1 )
+     direction = Direction.LEFT;
+   else
+     direction = Direction.NONE;
+   
+   speed = abs(result) * 10;
 }

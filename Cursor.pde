@@ -1,9 +1,9 @@
 class Cursor{
   private int radius;
-  public int x;
+  public float x;
   public int y;
   
-  public Cursor(int x, int y, int radius) {
+  public Cursor(float x, int y, int radius) {
     this.x = x;
     this.y = y;
     this.radius = radius;
