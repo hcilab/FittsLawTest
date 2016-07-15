@@ -63,7 +63,7 @@ long startTime;
 int count;
 String username="";
 
-// hit left bar before starting timer and logging
+// hit left rectangle before starting timer and logging
 boolean hitLeftFirst;
 
 Robot robot;
@@ -277,6 +277,7 @@ void reset() {
   nextRect = leftRect;
   prevRect = rightRect;
   cursor = new Cursor(width/2,height/2,10);
+  robot.mouseMove(width/2, height/2);
 }
 
 void mouseMoved() {
@@ -313,7 +314,7 @@ void drawPauseMenu() {
   text("Next selection type: " + selectionType.name(), width/2, 200);
 
   if (selectionType == Selection.DWELL) {
-    text("Hover the cursor over the green rectangle for 3 seconds", width/2, 250);
+    text("Hover the cursor over the green rectangle for 2 seconds", width/2, 250);
   } else {
     text("Move the cursor to the green rectangle and press the spacebar", width/2, 250);
   }
