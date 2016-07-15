@@ -1,3 +1,6 @@
+import java.awt.AWTException;
+import java.awt.Robot;
+
 enum Selection {
   KEY_PRESS,
   DWELL,
@@ -42,6 +45,8 @@ String username="";
 // hit left bar before starting timer and logging
 boolean hitLeftFirst;
 
+Robot robot;
+
 void setup() {
   fullScreen();
   noCursor();
@@ -77,6 +82,12 @@ void setup() {
   count = 0;
   hitLeftFirst = false;
   tod = System.currentTimeMillis();
+  try {
+    robot = new Robot();
+    robot.mouseMove(width/2, height/2);
+  } catch (AWTException e) {
+    println("[ERROR] Problem initializing Robot in setup(), " + e);
+  }
 }
 
 void draw() {
