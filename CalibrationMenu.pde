@@ -29,7 +29,8 @@ class CalibrationMenu{
         }
       }
       else{
-        isCalibration = false;
+        gameState = GameState.PAUSE;
+        loadTableData();
       }
   }
   

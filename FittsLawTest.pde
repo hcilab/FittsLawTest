@@ -8,17 +8,22 @@ enum Selection {
   DWELL,
 }
 
-enum Direction{
+enum Direction {
   NONE,
   LEFT,
   RIGHT,
 }
 
-enum EmgSamplingPolicy
-{
+enum EmgSamplingPolicy {
   DIFFERENCE,
   MAX,
   FIRST_OVER,
+}
+
+enum GameState {
+  CALIBRATE,
+  TEST,
+  PAUSE,
 }
 
 IEmgManager emgManager;
@@ -37,7 +42,6 @@ boolean spacePressed;
 long startTimeInsideRect;
 Rectangle nextRect;
 Rectangle prevRect;
-boolean isCalibration;
 ArrayList<String> registerAction;
 
 // Data to be read in from loadTrialInfo();
@@ -64,6 +68,8 @@ boolean hitLeftFirst;
 
 Robot robot;
 
+GameState gameState;
+
 void setup() {
   fullScreen();
   noCursor();
@@ -72,7 +78,7 @@ void setup() {
   shapeMode(CENTER);
   textAlign(CENTER, CENTER);
   
-  isCalibration = true;
+  gameState = GameState.CALIBRATE;
   emgManager = new NullEmgManager();
   registerAction = new ArrayList<String>();
   registerAction.add(LEFT_DIRECTION_LABEL);
@@ -89,14 +95,6 @@ void setup() {
   trialInfos = loadTrialInfo();
   rowCount = trialInfos.getRowCount();
   rowIndex = 0;
-  if (rowIndex < rowCount) {
-    trialInfoRow = trialInfos.getRow(rowIndex);
-    getNewRowData();
-    rowIndex++;
-  } else {
-    println("[ERROR] There were no rows of data in the trial_info.csv file. Exiting program.");
-    exit();
-  }
 
   setupLogTable();
 
@@ -117,27 +115,13 @@ void setup() {
 
 void draw() {
   background(255);
-  if(isCalibration){
-    calMenu.draw();
-  }
-  else{
-    if (count >= numTrials) {
-      reset();
-    }
-  
-    if(Selection.DWELL == selectionType){
-      checkDwellTime();
-    }
-  
-  if (!hitLeftFirst) {
-    prevRect.draw(255,255,255);
-  } else {
-    prevRect.draw(255,0,255);
-  }
-  nextRect.draw(0,255,0);
-    
-  cursor.move();
-  cursor.draw(0,0,255);
+  switch (gameState) {
+    case CALIBRATE: calMenu.draw();
+      break;
+    case TEST: drawTest();
+      break;
+    case PAUSE: drawPauseMenu();
+      break;
   }
 }
 
@@ -198,8 +182,12 @@ void nextRectangle(){
 
 void keyPressed(){
   if(key == ' '){
-    if(isCalibration){
+    if(gameState == GameState.CALIBRATE){
        calMenu.registerAction();
+    }
+    else if (gameState == GameState.PAUSE) {
+      gameState = GameState.TEST;
+      reset();
     }
     else if(!(Selection.DWELL == selectionType)){
       spaceClicked(); 
@@ -283,7 +271,62 @@ void logTrialData() {
 void reset() {
   count = 0;
   hitLeftFirst = false;
+
+  generateRectangles();
   
+  nextRect = leftRect;
+  prevRect = rightRect;
+  cursor = new Cursor(width/2,height/2,10);
+}
+
+void mouseMoved() {
+  cursor.followMouse(mouseX);
+}
+
+void gatherRawInput(){
+  HashMap<String, Float> rawInput = emgManager.poll();
+}
+
+void drawTest() {
+  if (count >= numTrials) {
+      gameState = GameState.PAUSE;
+      loadTableData();
+  }
+
+  if(Selection.DWELL == selectionType){
+    checkDwellTime();
+  }
+
+  if (!hitLeftFirst) {
+    prevRect.draw(255,255,255);
+  } else {
+    prevRect.draw(255,0,255);
+  }
+  nextRect.draw(0,255,0);
+
+  cursor.move();
+  cursor.draw(0,0,255);
+}
+
+void drawPauseMenu() {
+  text("Pause Menu", width/2, 100);
+  text("Next selection type: " + selectionType.name(), width/2, 200);
+
+  if (selectionType == Selection.DWELL) {
+    text("Hover the cursor over the green rectangle for 3 seconds", width/2, 250);
+  } else {
+    text("Move the cursor to the green rectangle and press the spacebar", width/2, 250);
+  }
+
+  if (practice) {
+    text("*This test is a practice*", width/2, 350);
+  }
+
+  text("Press Spacebar to proceed to test",width/2,450);
+  fill(0);
+}
+
+void loadTableData() {
   if (rowIndex < rowCount) {
     trialInfoRow = trialInfos.getRow(rowIndex);
     
@@ -294,22 +337,8 @@ void reset() {
       println("[ERROR] There were no rows of data in the trial_info.csv file. Exiting program.");
       exit();
     }
-    
-    generateRectangles();
-    
-    nextRect = leftRect;
-    prevRect = rightRect;
-    cursor = new Cursor(width/2,height/2,10);
   } else {
     logTrialData();
     exit();
   }
-}
-
-void mouseMoved() {
-  cursor.followMouse(mouseX);
-}
-
-void gatherRawInput(){
-  HashMap<String, Float> rawInput = emgManager.poll();
 }
