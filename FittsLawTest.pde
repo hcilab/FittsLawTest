@@ -17,7 +17,6 @@ Direction direction;
 int speed;
 boolean spacePressed;
 long startTimeInsideRect;
-boolean stayGreen;
 Rectangle nextRect;
 Rectangle prevRect;
 
@@ -74,7 +73,6 @@ void setup() {
   cursor = new Cursor(width/2,height/2,"+",10);
   nextRect = leftRect;
   prevRect = rightRect;
-  stayGreen = false;
   count = 0;
   hitLeftFirst = false;
   tod = System.currentTimeMillis();
@@ -91,14 +89,12 @@ void draw() {
     checkDwellTime();
   }
 
-  if(prevRect.isCursorInside() && stayGreen){
-    prevRect.draw(0,255,0);
-    nextRect.draw(255,255,255);
-  } else{
-    stayGreen = false;
+  if (!hitLeftFirst) {
     prevRect.draw(255,255,255);
-    nextRect.draw(255,255,255);
+  } else {
+    prevRect.draw(255,0,255);
   }
+  nextRect.draw(0,255,0);
     
   cursor.move();
   cursor.draw(255,255,255);
@@ -130,7 +126,6 @@ void generateRectangles(){
 }
 
 void nextRectangle(){
-  stayGreen = true;
   if(nextRect.equals(leftRect)){
     prevRect = leftRect;
     nextRect = rightRect; 
