@@ -151,7 +151,6 @@ class EmgManager implements IEmgManager {
 class NullEmgManager implements IEmgManager {
 
   boolean registerAction(String label, int sensorID) {
-    println("false");
     return false;
   }
 
