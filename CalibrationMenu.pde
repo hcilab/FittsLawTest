@@ -1,20 +1,29 @@
+enum Message {
+  AUTO_MANUAL,
+  SPACEBAR_CALIBRATION,
+  PICK_SENSOR,
+  COMPLETE,
+  FAILURE,
+}
+
 class CalibrationMenu{
   String failure;
-  String message;
-  String question1;
+  String calibrationMessage;
+  String sensorMessage;
+  String chooseCalibration;
   String skipMyoCalibration;
-  int question;
+  int sensorToRegister;
   boolean isMyoCalibrated;
   CalibrationMethod calMethod;
+  Message message;
   ArrayList<String> actionsToRegister = new ArrayList<String>();
-  
+    
   public CalibrationMenu(ArrayList<String> actionsToRegister) {
     this.actionsToRegister = actionsToRegister;
-    this.question = 1;
-    this.question1 = "press 'a' for auto calibration Press 'm' for manual calibration"; 
-    this.message = "Press Spacebar to Register the Left Label by Contracting your arm to the " + actionsToRegister.get(0);
+    this.chooseCalibration = "press 'a' for auto calibration Press 'm' for manual calibration"; 
     this.skipMyoCalibration = "Press 's' to skip Myo Calibration";
-    this.failure = "";
+    this.failure = "Myo Electric Calibration Failed, Press 'r' to retry";
+    this.message = Message.AUTO_MANUAL;
     isMyoCalibrated = false;
     try {
       emgManager = new EmgManager();
@@ -27,27 +36,28 @@ class CalibrationMenu{
     if(calMethod == CalibrationMethod.AUTO){
       registerActionAuto();
     }
-    else if(calMethod == CalibrationMethod.AUTO){
+    else if(calMethod == CalibrationMethod.MANUAL){
+      println("Registering Myo Manually");
       registerActionManual();
     }
   }
   
   public void registerActionAuto(){
-    if(question == 2){
+    if(message == Message.SPACEBAR_CALIBRATION){
       if(!actionsToRegister.isEmpty()){
-        boolean success = emgManager.registerAction(actionsToRegister.get(0));
+        boolean success = emgManager.registerAction(actionsToRegister.get(0), -1);
         if (!success) {
-          failure = "fail";
+          message = Message.FAILURE;
         }
         else{
           isMyoCalibrated = true; 
+          actionsToRegister.remove(0);
         }
-        actionsToRegister.remove(0);
         if(!actionsToRegister.isEmpty()){
-          message = "Press Spacebar to Register the Left Label by Contracting your arm to the " + actionsToRegister.get(0);
+          calibrationMessage = "Press Spacebar to Register the " + actionsToRegister.get(0) + " Label by Contracting your arm to the " + actionsToRegister.get(0);
         }
         else{
-          message = "Press Spacebar to Proceed to Test";
+          calibrationMessage = "Press Spacebar to Proceed to Test";
         }
       }
       else{
@@ -58,44 +68,94 @@ class CalibrationMenu{
   }
   
   public void registerActionManual(){
-    println("Manual register Action");
+    if(message == Message.SPACEBAR_CALIBRATION){
+      if(!actionsToRegister.isEmpty()){
+        boolean success = emgManager.registerAction(actionsToRegister.get(0), sensorToRegister);
+        if (!success) {
+          message = Message.FAILURE;
+        }
+        else{
+          isMyoCalibrated = true; 
+        }
+        actionsToRegister.remove(0);
+        if(!actionsToRegister.isEmpty()){
+          calibrationMessage = "Choose what sensor to calibrate with the " + actionsToRegister.get(0) + " contracting action";
+          message = Message.PICK_SENSOR;
+        }
+        else{
+          calibrationMessage = "Well done the Calibration is Complete, Press Spacebar to Proceed to Test";
+        }
+      }
+      else{
+        gameState = GameState.PAUSE;
+        loadTableData();
+      }
+    }
   }
   
   public void chooseMethod(char key){
-    if(question ==1)  {
+    if(message == Message.AUTO_MANUAL)  {
       if(key == 'a' || key=='A'){
         calMethod = CalibrationMethod.AUTO;
+        calibrationMessage = "Press Spacebar to Register the Left Label by Contracting your arm to the " + actionsToRegister.get(0);
+        message = Message.SPACEBAR_CALIBRATION;
       }
       else if(key=='M' || key=='m'){
-        calMethod = CalibrationMethod.AUTO;  
+        calMethod = CalibrationMethod.MANUAL;
+        calibrationMessage = "Choose what sensor to calibrate with the " + actionsToRegister.get(0) + " contracting action";
+        sensorMessage = "Pick a sensor (0 to 7), the myo armaband has labels of the sensor";
+        message = Message.PICK_SENSOR;
       }
-      question++;
+      
     }   
   }
   
-  public void draw(){
-    text("Myo Calibration", width/2, 100);
-     switch (question) {
-      case 1: question = 1;
-          text(question1, width/2, 200);
-        break;
-      case 2: question = 2;
-        text(message, width/2, 200);
-        text(failure,width/2,300);
-        break;
-     }
-    text(skipMyoCalibration,width/2,height - 100);
-    fill(0);
+  public void manuallyChooseSensor(char key){
+    if(message == Message.PICK_SENSOR){
+      sensorToRegister = Character.getNumericValue(key);
+      calibrationMessage = "Press Spacebar to Register the " + actionsToRegister.get(0) + " Label by Contracting your arm to the " + actionsToRegister.get(0);
+      message = Message.SPACEBAR_CALIBRATION;
+    }
   }
   
-  public void chooseCalbrationMethod(char key){
-    if(key == 'M' || key == 'm'||key =='M' || key == 'a'||key =='A'){
-      
-    }
-    question++;
-  }
-
   public boolean isMyoCalibrated(){
     return isMyoCalibrated;
+  }
+  
+  public void retryCalibration(){
+    if(message == Message.FAILURE){
+      message = Message.AUTO_MANUAL;
+    }
+  }
+  
+  
+  
+  
+  
+  public void draw(){
+    text("Myo Calibration", width/2, 100);
+     switch (message) {
+      case AUTO_MANUAL:
+        text(chooseCalibration, width/2, 200);
+        text(skipMyoCalibration,width/2,height - 100);
+        break;
+      case SPACEBAR_CALIBRATION:
+        text(calibrationMessage, width/2, 200);
+        text(skipMyoCalibration,width/2,height - 100);
+        break;
+      case PICK_SENSOR:
+        text(calibrationMessage, width/2, 200);
+        text(sensorMessage, width/2,300);
+        text(skipMyoCalibration,width/2,height - 100);
+        break;
+      case COMPLETE:
+        text(calibrationMessage, width/2, 200);
+        break;
+      case FAILURE:
+        text(failure, width/2, 200);
+        text(skipMyoCalibration,width/2,height - 100);
+        break;
+     }
+    fill(0);
   }
 }

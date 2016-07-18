@@ -72,7 +72,12 @@ class MyoAPI implements IMyoAPI {
   // could later provide a hook for user-specified settings.
   //
   void registerActionManual(String label, int sensorID) {
-    SensorConfig s = new SensorConfig(sensorID, MAX_MYO_READING);
+    float strongestReading = 0;
+    Sample[] currentSamples = {};
+    currentSamples = sampleWindow.toArray(currentSamples); // infers type-info
+    strongestReading = meanAbsoluteValue(currentSamples, sensorID);
+    
+    SensorConfig s = new SensorConfig(sensorID, strongestReading);
     registeredSensors.put(label, s);
     println("Registered: "+label+" ["+s.sensorID+"] "+s.maxReading);
   }

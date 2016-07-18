@@ -31,6 +31,7 @@ enum CalibrationMethod{
   AUTO,
 }
 
+
 IEmgManager emgManager;
 CalibrationMenu calMenu;
 
@@ -169,7 +170,8 @@ void nextRectangle(){
   if(nextRect.equals(leftRect)){
     prevRect = leftRect;
     nextRect = rightRect; 
-  } else{
+  } 
+  else{
     prevRect = rightRect;
     nextRect = leftRect;
   }
@@ -212,7 +214,13 @@ void keyPressed(){
     gameState = GameState.PAUSE;
   }
   else if(key == 'm'||key =='M' || key == 'a'||key =='A'){
-      calMenu.chooseMethod(key);
+    calMenu.chooseMethod(key);
+  }
+  else if(key == '0'|| key =='1' || key == '2' || key =='3' || key == '4' || key =='5' || key == '6' || key =='7' || key == '8' ){
+    calMenu.manuallyChooseSensor(key);
+  }
+  else if(key == 'R' || key == 'r'){
+    calMenu.retryCalibration();
   }
   if (key == CODED)
   { 
