@@ -79,6 +79,11 @@ Robot robot;
 
 GameState gameState;
 
+// used for calculating overshoots and undershoots
+boolean onLeftSide;
+boolean onRightSide;
+int countOvershoots;
+
 void setup() {
   fullScreen();
   noCursor();
@@ -122,6 +127,9 @@ void setup() {
   } catch (AWTException e) {
     println("[ERROR] Problem initializing Robot in setup(), " + e);
   }
+  onRightSide = true;
+  onLeftSide = false;
+  countOvershoots = 0;
 }
 
 void draw() {
@@ -170,16 +178,21 @@ void nextRectangle(){
   if(nextRect.equals(leftRect)){
     prevRect = leftRect;
     nextRect = rightRect; 
+    onRightSide = false;
+    onLeftSide = true;
   } 
   else{
     prevRect = rightRect;
     nextRect = leftRect;
+    onRightSide = true;
+    onLeftSide = false;
   }
   
   long totalTime = System.currentTimeMillis() - startTime;
   startTime = System.currentTimeMillis();
   if (!hitLeftFirst) {
     hitLeftFirst = true;
+    countOvershoots = 0;
   } else {
     count++;
     resultsRow = logData.addRow();
@@ -193,6 +206,8 @@ void nextRectangle(){
     resultsRow.setInt("distance", rectDist);
     resultsRow.setString("practice", Boolean.toString(practice));
     resultsRow.setString("selection", selectionType.name());
+    resultsRow.setInt("overshoots", countOvershoots);
+    countOvershoots = 0;
   }
 }
 
@@ -297,6 +312,7 @@ void setupLogTable() {
     logData.addColumn("distance");
     logData.addColumn("practice");
     logData.addColumn("selection");
+    logData.addColumn("overshoots");
   }
 }
 
@@ -318,6 +334,9 @@ void reset() {
 
 void mouseMoved() {
   cursor.followMouse(mouseX);
+  if(!calMenu.isMyoCalibrated()) {
+    calculateOvershoots(mouseX);
+  }
 }
 
 void drawTest() {
@@ -341,6 +360,9 @@ void drawTest() {
   nextRect.draw(0,255,0);
 
   cursor.move();
+  if (calMenu.isMyoCalibrated()) {
+    calculateOvershoots(mouseX);
+  }
   cursor.draw(0,0,255);
 }
 
@@ -364,6 +386,7 @@ void drawPauseMenu() {
 
 void loadTableData() {
   if (rowIndex < rowCount) {
+    countOvershoots = 0;
     trialInfoRow = trialInfos.getRow(rowIndex);
     
     if (trialInfoRow != null) {
@@ -422,5 +445,17 @@ int loadTestNum() {
     return num;
   } else {
     return 1;
+  }
+}
+
+public void calculateOvershoots(int x) {
+  if (x < nextRect.x - (rectWidth/2) && onRightSide) {
+    countOvershoots++;
+    onRightSide = false;
+    onLeftSide = true;
+  } else if (x > nextRect.x + (rectWidth/2) && onLeftSide) {
+    countOvershoots++;
+    onLeftSide = false;
+    onRightSide = true;
   }
 }
