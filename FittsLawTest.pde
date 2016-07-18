@@ -1,5 +1,6 @@
 import java.awt.AWTException;
 import java.awt.Robot;
+import processing.sound.SoundFile;
 import de.voidplus.myo.*;
 import java.util.ArrayList;
 
@@ -75,6 +76,7 @@ String username;
 boolean hitLeftFirst;
 
 Robot robot;
+SoundFile beepSound;
 
 GameState gameState;
 
@@ -121,6 +123,11 @@ void setup() {
   } catch (AWTException e) {
     println("[ERROR] Problem initializing Robot in setup(), " + e);
   }
+  beepSound = new SoundFile(this, "sound/beep.wav");
+  beepSound.rate(1.0);
+  try { beepSound.pan(0.0); } catch (UnsupportedOperationException e) {}
+  beepSound.add(0.0);
+  beepSound.amp(1.0);
 }
 
 void draw() {
@@ -166,6 +173,7 @@ void generateRectangles(){
 }
 
 void nextRectangle(){
+  beepSound.play();
   if(nextRect.equals(leftRect)){
     prevRect = leftRect;
     nextRect = rightRect; 
