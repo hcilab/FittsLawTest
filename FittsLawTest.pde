@@ -61,6 +61,7 @@ int rectWidth;
 int rectDist;
 boolean practice;
 Selection selectionType;
+int testNum;
 
 // Data to be saved at the end of all trials;
 Table logData;
@@ -68,7 +69,7 @@ TableRow resultsRow;
 long tod;
 long startTime;
 int count;
-String username="";
+String username;
 
 // hit left rectangle before starting timer and logging
 boolean hitLeftFirst;
@@ -103,7 +104,9 @@ void setup() {
   rowCount = trialInfos.getRowCount();
   rowIndex = 0;
 
+  username = loadUsername();
   setupLogTable();
+  testNum = loadTestNum();
 
   generateRectangles();
   cursor = new Cursor(width/2,height/2,8);
@@ -180,9 +183,12 @@ void nextRectangle(){
     resultsRow = logData.addRow();
     resultsRow.setLong("tod", tod);
     resultsRow.setString("username", username);
+    resultsRow.setInt("test", testNum);
     resultsRow.setInt("trial#", rowIndex);
     resultsRow.setInt("iteration", count);
     resultsRow.setLong("time", totalTime);
+    resultsRow.setInt("width", rectWidth);
+    resultsRow.setInt("distance", rectDist);
     resultsRow.setString("practice", Boolean.toString(practice));
     resultsRow.setString("selection", selectionType.name());
   }
@@ -269,18 +275,25 @@ void getNewRowData() {
 }
 
 void setupLogTable() {
-  logData = new Table();
-  logData.addColumn("tod");
-  logData.addColumn("username");
-  logData.addColumn("trial#");
-  logData.addColumn("iteration");
-  logData.addColumn("time");
-  logData.addColumn("practice");
-  logData.addColumn("selection");
+  if (fileExists("results_" + username + ".csv")) {
+    logData = loadTable("results_" + username + ".csv", "header");
+  } else {
+    logData = new Table();
+    logData.addColumn("tod");
+    logData.addColumn("username");
+    logData.addColumn("test");
+    logData.addColumn("trial#");
+    logData.addColumn("iteration");
+    logData.addColumn("time");
+    logData.addColumn("width");
+    logData.addColumn("distance");
+    logData.addColumn("practice");
+    logData.addColumn("selection");
+  }
 }
 
 void logTrialData() {
-  saveTable(logData, "results.csv");
+  saveTable(logData, "results_" + username + ".csv");
 }
 
 void reset() {
@@ -372,4 +385,34 @@ void gatherRawInput(){
      direction = Direction.NONE;
    
    speed = abs(result) * 10;
+}
+
+String loadUsername() {
+  String filename = "username.txt";
+  String defaultValue = "";
+
+  if (!fileExists(filename)) {
+    return defaultValue;
+  }
+
+  BufferedReader br = createReader(filename);
+  String username = "";
+
+  try {
+    username = br.readLine();
+  } catch (Exception e) {
+    return defaultValue;
+  }
+
+  return username;
+}
+
+int loadTestNum() {
+  if (logData.getRowCount() > 0) {
+    TableRow lastRow = logData.getRow(logData.getRowCount()-1);
+    int num = lastRow.getInt("test") + 1;
+    return num;
+  } else {
+    return 1;
+  }
 }
