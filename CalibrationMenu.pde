@@ -57,7 +57,8 @@ class CalibrationMenu{
           calibrationMessage = "Press Spacebar to Register the " + actionsToRegister.get(0) + " Label by Contracting your arm to the " + actionsToRegister.get(0);
         }
         else{
-          calibrationMessage = "Press Spacebar to Proceed to Test";
+          message = Message.COMPLETE;
+          calibrationMessage = "Well done the Calibration is Complete, Press Spacebar to Proceed to Test";
         }
       }
       else{
@@ -83,6 +84,7 @@ class CalibrationMenu{
           message = Message.PICK_SENSOR;
         }
         else{
+          message = Message.COMPLETE;
           calibrationMessage = "Well done the Calibration is Complete, Press Spacebar to Proceed to Test";
         }
       }
