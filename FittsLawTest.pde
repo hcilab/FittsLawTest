@@ -209,17 +209,17 @@ void keyPressed(){
       spaceClicked(); 
     }
   }  
-  else if(key == 's'||key =='S'){
+  else if((key == 's'||key =='S') && gameState == GameState.CALIBRATE){
     loadTableData();
     gameState = GameState.PAUSE;
   }
-  else if(key == 'm'||key =='M' || key == 'a'||key =='A'){
+  else if((key == 'm'||key =='M' || key == 'a'||key =='A') && gameState == GameState.CALIBRATE){
     calMenu.chooseMethod(key);
   }
-  else if(key == '0'|| key =='1' || key == '2' || key =='3' || key == '4' || key =='5' || key == '6' || key =='7' || key == '8' ){
+  else if((key == '0'|| key =='1' || key == '2' || key =='3' || key == '4' || key =='5' || key == '6' || key =='7')  && gameState == GameState.CALIBRATE ){
     calMenu.manuallyChooseSensor(key);
   }
-  else if(key == 'R' || key == 'r'){
+  else if((key == 'R' || key == 'r')  && gameState == GameState.CALIBRATE){
     calMenu.retryCalibration();
   }
   if (key == CODED)
