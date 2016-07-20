@@ -63,6 +63,7 @@ int rectDist;
 boolean practice;
 Selection selectionType;
 int testNum;
+int dwellTime;
 
 // Data to be saved at the end of all trials;
 Table logData;
@@ -171,7 +172,7 @@ void checkDwellTime(){
     nextRect.inRect = false;
   }
  
-  if(((System.currentTimeMillis() - startTimeInsideRect) > 2000) && nextRect.inRect){
+  if(((System.currentTimeMillis() - startTimeInsideRect) > dwellTime) && nextRect.inRect){
     nextRectangle();
   }
 }
@@ -212,7 +213,11 @@ void nextRectangle(){
     resultsRow.setInt("test", testNum);
     resultsRow.setInt("trial#", rowIndex);
     resultsRow.setInt("iteration", count);
-    resultsRow.setLong("time", totalTime);
+    if (selectionType == Selection.DWELL) {
+      resultsRow.setLong("time", totalTime-dwellTime);
+    } else {
+      resultsRow.setLong("time", totalTime);
+    }
     resultsRow.setInt("width", rectWidth);
     resultsRow.setInt("distance", rectDist);
     resultsRow.setString("practice", Boolean.toString(practice));
@@ -274,6 +279,7 @@ void getNewRowData() {
   rectDist = trialInfoRow.getInt("distance");
   practice = trialInfoRow.getString("practice").equals("true") ? true : false;
   selectionType = trialInfoRow.getString("selection").equals("dwell") ? Selection.DWELL : Selection.KEY_PRESS;
+  dwellTime = trialInfoRow.getInt("dwell_time");
 }
 
 void setupLogTable() {
@@ -349,7 +355,7 @@ void drawPauseMenu() {
   text("Next selection type: " + selectionType.name(), width/2, 200);
 
   if (selectionType == Selection.DWELL) {
-    text("Hover the cursor over the green rectangle for 2 seconds", width/2, 250);
+    text("Hover the cursor over the green rectangle for " + (dwellTime/1000) + " seconds", width/2, 250);
   } else {
     text("Move the cursor to the green rectangle and press the spacebar", width/2, 250);
   }
