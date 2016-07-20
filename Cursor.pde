@@ -1,10 +1,10 @@
 class Cursor{
   private int radius;
-  private float x;
+  private int x;
   private int y;
   private int lastX;
   
-  public Cursor(float x, int y, int radius) {
+  public Cursor(int x, int y, int radius) {
     this.x = x;
     this.y = y;
     this.radius = radius;
@@ -25,12 +25,28 @@ class Cursor{
   }
   
   public void move(){
-    if(direction == Direction.RIGHT && cursor.x < width){  
-      cursor.x=cursor.x + speed;
+    if(direction == Direction.RIGHT && cursor.x < width){
+      if (cursor.x + speed > width) {
+        int dist = (cursor.x + speed) - width;
+        int modifiedSpeed = speed - dist;
+        distanceTravelled += modifiedSpeed;
+        cursor.x += modifiedSpeed;
+      } else {
+        distanceTravelled += speed;
+        cursor.x += speed;
+      }
       movingRight = true;
       movingLeft = false;
     } else if (direction == Direction.LEFT && cursor.x > 0){
-      cursor.x = cursor.x - speed;
+      if (cursor.x - speed < 0) {
+        int dist = cursor.x - speed;
+        int modifiedSpeed = speed + dist;
+        distanceTravelled += modifiedSpeed;
+        cursor.x -= modifiedSpeed;
+      } else {
+        distanceTravelled += speed;
+        cursor.x -= speed;
+      }
       movingLeft = true;
       movingRight = false;
     } else {
@@ -39,6 +55,7 @@ class Cursor{
   }
 
   public void followMouse(int x, int prevX) {
+    distanceTravelled += abs(x - prevX);
     this.lastX = prevX;
     this.x = x;
     if (x > lastX) {
@@ -55,6 +72,6 @@ class Cursor{
   }
 
   public int getX() {
-    return (int)(x);
+    return x;
   }
 }

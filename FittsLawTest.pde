@@ -43,7 +43,7 @@ Rectangle leftRect;
 Rectangle rightRect;
 Cursor cursor;
 Direction direction;
-float speed;
+int speed;
 boolean spacePressed;
 long startTimeInsideRect;
 Rectangle nextRect;
@@ -72,6 +72,7 @@ long tod;
 long startTime;
 int count;
 String username;
+int distanceTravelled;
 
 // hit left rectangle before starting timer and logging
 boolean hitLeftFirst;
@@ -138,6 +139,7 @@ void setup() {
   movingLeft = false;
   movingRight = false;
   countUndershoots = 0;
+  distanceTravelled = 0;
 }
 
 void draw() {
@@ -220,6 +222,7 @@ void nextRectangle(){
     }
     resultsRow.setInt("width", rectWidth);
     resultsRow.setInt("distance", rectDist);
+    resultsRow.setInt("distance_travelled", distanceTravelled);
     resultsRow.setString("practice", Boolean.toString(practice));
     resultsRow.setString("selection", selectionType.name());
     resultsRow.setInt("overshoots", countOvershoots);
@@ -295,6 +298,7 @@ void setupLogTable() {
     logData.addColumn("time");
     logData.addColumn("width");
     logData.addColumn("distance");
+    logData.addColumn("distance_travelled");
     logData.addColumn("practice");
     logData.addColumn("selection");
     logData.addColumn("overshoots");
@@ -318,10 +322,6 @@ void reset() {
   robot.mouseMove(width/2, height/2);
 }
 
-void moveMouse() {
-  cursor.followMouse(mouseX, pmouseX);
-}
-
 void drawTest() {
   if (count >= numTrials) {
     gameState = GameState.PAUSE;
@@ -343,7 +343,7 @@ void drawTest() {
      gatherRawInput();
      cursor.move();
    } else {
-     moveMouse();
+     cursor.followMouse(mouseX, pmouseX);
    }
    calculateOvershoots(cursor.getX());
    calculateUndershoots(cursor.getX());
@@ -406,7 +406,7 @@ void gatherRawInput(){
      result = 0;
    }
    
-   speed = abs(result) * 10;
+   speed = round(abs(result) * 10);
 }
 
 String loadUsername() {
