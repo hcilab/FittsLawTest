@@ -79,10 +79,14 @@ Robot robot;
 
 GameState gameState;
 
-// used for calculating overshoots and undershoots
+// used for calculating overshoots
 boolean onLeftSide;
 boolean onRightSide;
 int countOvershoots;
+// used for calculating undershoots
+boolean movingLeft;
+boolean movingRight;
+int countUndershoots;
 
 void setup() {
   fullScreen();
@@ -115,7 +119,7 @@ void setup() {
   testNum = loadTestNum();
 
   generateRectangles();
-  cursor = new Cursor(width/2,height/2,8);
+  cursor = new Cursor(width/2,height/2,10);
   nextRect = leftRect;
   prevRect = rightRect;
   count = 0;
@@ -130,6 +134,9 @@ void setup() {
   onRightSide = true;
   onLeftSide = false;
   countOvershoots = 0;
+  movingLeft = false;
+  movingRight = false;
+  countUndershoots = 0;
 }
 
 void draw() {
@@ -187,12 +194,16 @@ void nextRectangle(){
     onRightSide = true;
     onLeftSide = false;
   }
-  
+
+  movingLeft = false;
+  movingRight = false;
+
   long totalTime = System.currentTimeMillis() - startTime;
   startTime = System.currentTimeMillis();
   if (!hitLeftFirst) {
     hitLeftFirst = true;
     countOvershoots = 0;
+    countUndershoots = 0;
   } else {
     count++;
     resultsRow = logData.addRow();
@@ -207,7 +218,9 @@ void nextRectangle(){
     resultsRow.setString("practice", Boolean.toString(practice));
     resultsRow.setString("selection", selectionType.name());
     resultsRow.setInt("overshoots", countOvershoots);
+    resultsRow.setInt("undershoots", countUndershoots);
     countOvershoots = 0;
+    countUndershoots = 0;
   }
 }
 
@@ -313,6 +326,7 @@ void setupLogTable() {
     logData.addColumn("practice");
     logData.addColumn("selection");
     logData.addColumn("overshoots");
+    logData.addColumn("undershoots");
   }
 }
 
@@ -332,38 +346,36 @@ void reset() {
   robot.mouseMove(width/2, height/2);
 }
 
-void mouseMoved() {
-  cursor.followMouse(mouseX);
-  if(!calMenu.isMyoCalibrated()) {
-    calculateOvershoots(mouseX);
-  }
+void moveMouse() {
+  cursor.followMouse(mouseX, pmouseX);
 }
 
 void drawTest() {
-   if(calMenu.isMyoCalibrated())
-      gatherRawInput();
-  
   if (count >= numTrials) {
-      gameState = GameState.PAUSE;
-      loadTableData();
+    gameState = GameState.PAUSE;
+    loadTableData();
+  } else {
+    if (!hitLeftFirst) {
+      prevRect.draw(255,255,255);
+    } else {
+      prevRect.draw(255,0,255);
+    }
+    nextRect.draw(0,255,0);
   }
 
   if(Selection.DWELL == selectionType){
     checkDwellTime();
   }
 
-  if (!hitLeftFirst) {
-    prevRect.draw(255,255,255);
-  } else {
-    prevRect.draw(255,0,255);
-  }
-  nextRect.draw(0,255,0);
-
-  cursor.move();
-  if (calMenu.isMyoCalibrated()) {
-    calculateOvershoots(mouseX);
-  }
-  cursor.draw(0,0,255);
+  if(calMenu.isMyoCalibrated()) {
+     gatherRawInput();
+     cursor.move();
+   } else {
+     moveMouse();
+   }
+   calculateOvershoots(cursor.getX());
+   calculateUndershoots(cursor.getX());
+   cursor.draw(0,0,255);
 }
 
 void drawPauseMenu() {
@@ -387,6 +399,7 @@ void drawPauseMenu() {
 void loadTableData() {
   if (rowIndex < rowCount) {
     countOvershoots = 0;
+    countUndershoots = 0;
     trialInfoRow = trialInfos.getRow(rowIndex);
     
     if (trialInfoRow != null) {
@@ -408,12 +421,18 @@ void gatherRawInput(){
    myoRightMagnitude = rawInput.get(RIGHT_DIRECTION_LABEL);
    
    float result = myoRightMagnitude - myoLeftMagnitude;
-   if(result > 0.1 )
+   if(result > 0.1 ) {
      direction = Direction.RIGHT;
-   else if(result < -0.1 )
+     movingRight = true;
+     movingLeft = false;
+   } else if(result < -0.1 ) {
      direction = Direction.LEFT;
-   else
+     movingLeft = true;
+     movingRight = false;
+   } else {
      direction = Direction.NONE;
+     result = 0;
+   }
    
    speed = abs(result) * 10;
 }
@@ -457,5 +476,15 @@ public void calculateOvershoots(int x) {
     countOvershoots++;
     onLeftSide = false;
     onRightSide = true;
+  }
+}
+
+public void calculateUndershoots(int x) {
+  if (x > nextRect.x + (rectWidth/2) && speed == 0 && onRightSide && movingLeft) {
+    countUndershoots++;
+    movingLeft = false;
+  } else if (x < nextRect.x - (rectWidth/2) && speed == 0 && onLeftSide && movingRight) {
+    countUndershoots++;
+    movingRight = false;
   }
 }
