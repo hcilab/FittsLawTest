@@ -250,40 +250,6 @@ void keyPressed(){
   else if((key == 'R' || key == 'r')  && gameState == GameState.CALIBRATE){
     calMenu.retryCalibration();
   }
-  if (key == CODED)
-  { 
-    switch (keyCode)
-    {   
-      case LEFT:
-          if(direction == Direction.NONE){
-            direction = Direction.LEFT;
-          }
-        return;  
-      case RIGHT:
-          if(direction == Direction.NONE){
-            direction = Direction.RIGHT;
-          }
-        return;
-    }
-  }
-}
-
-void keyReleased(){  
-  if (key == CODED)
-  {
-    switch (keyCode)
-    {
-      case LEFT:
-      if(!(direction == Direction.RIGHT))
-        direction = Direction.NONE;
-        return;
-        
-      case RIGHT:
-      if(!(direction == Direction.LEFT))
-        direction = Direction.NONE;
-        return;
-    }
-  }
 }
 
 Table loadTrialInfo() {
