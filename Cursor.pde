@@ -13,7 +13,6 @@ class Cursor{
   
   public void draw(int r, int g, int b) {
     stroke(0,0,0);
-    strokeWeight(1);
     strokeWeight(2);
     noFill();
     stroke(r,g,b);
@@ -69,9 +68,5 @@ class Cursor{
     } else {
       speed = 0;
     }
-  }
-
-  public int getX() {
-    return x;
   }
 }

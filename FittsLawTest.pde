@@ -73,6 +73,7 @@ long startTime;
 int count;
 String username;
 int distanceTravelled;
+int optimalPath;
 
 // hit left rectangle before starting timer and logging
 boolean hitLeftFirst;
@@ -185,6 +186,7 @@ void generateRectangles(){
 }
 
 void nextRectangle(){
+  optimalPath = rectDist - rectWidth - 2;
   if(nextRect.equals(leftRect)){
     prevRect = leftRect;
     nextRect = rightRect; 
@@ -222,6 +224,7 @@ void nextRectangle(){
     }
     resultsRow.setInt("width", rectWidth);
     resultsRow.setInt("distance", rectDist);
+    resultsRow.setInt("optimal_path", optimalPath);
     resultsRow.setInt("distance_travelled", distanceTravelled);
     resultsRow.setString("practice", Boolean.toString(practice));
     resultsRow.setString("selection", selectionType.name());
@@ -229,6 +232,7 @@ void nextRectangle(){
     resultsRow.setInt("undershoots", countUndershoots);
     countOvershoots = 0;
     countUndershoots = 0;
+    distanceTravelled = 0;
   }
 }
 
@@ -298,6 +302,7 @@ void setupLogTable() {
     logData.addColumn("time");
     logData.addColumn("width");
     logData.addColumn("distance");
+    logData.addColumn("optimal_path");
     logData.addColumn("distance_travelled");
     logData.addColumn("practice");
     logData.addColumn("selection");
@@ -345,8 +350,8 @@ void drawTest() {
    } else {
      cursor.followMouse(mouseX, pmouseX);
    }
-   calculateOvershoots(cursor.getX());
-   calculateUndershoots(cursor.getX());
+   calculateOvershoots(cursor.x);
+   calculateUndershoots(cursor.x);
    cursor.draw(0,0,255);
 }
 
@@ -372,6 +377,7 @@ void loadTableData() {
   if (rowIndex < rowCount) {
     countOvershoots = 0;
     countUndershoots = 0;
+    distanceTravelled = 0;
     trialInfoRow = trialInfos.getRow(rowIndex);
     
     if (trialInfoRow != null) {
