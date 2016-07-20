@@ -7,7 +7,8 @@ enum State {
 }
 
 class CalibrationMenu{
-  String retryCalibration;
+  String retryCalibrationComplete;
+  String retryCalibrationFailure;
   String calibrationMessage;
   String sensorMessage;
   String chooseCalibration;
@@ -26,7 +27,8 @@ class CalibrationMenu{
     this.actionsToRegister = _registerAction;
     this.chooseCalibration = "press 'a' for auto calibration Press 'm' for manual calibration"; 
     this.skipMyoCalibration = "Press 's' to skip Myo Calibration";
-    this.retryCalibration = "Myo Electric Calibration Failed, Press 'r' to retry";
+    this.retryCalibrationComplete = "If you do not like this calibration, press 'r' to retry";
+    this.retryCalibrationFailure = "Myo Electric Calibration Failed, Press 'r' to retry";
     this.state = State.AUTO_MANUAL;
     isMyoCalibrated = false;
     try {
@@ -152,10 +154,10 @@ class CalibrationMenu{
         text(calibrationMessage, width/2, 200);
         text("Right Sensor [" + leftSensorID +"]: " + leftSensorReading, width/2,250);
         text("Right Sensor [" + rightSensorID +"]: " + rightSensorReading, width/2,300);
-        text(retryCalibration, width/2, height - 100);
+        text(retryCalibrationComplete, width/2, height - 100);
         break;
       case FAILURE:
-        text(retryCalibration, width/2, 200);
+        text(retryCalibrationFailure, width/2, 200);
         text(skipMyoCalibration,width/2,height - 100);
         break;
      }
