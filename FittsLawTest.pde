@@ -74,6 +74,7 @@ int count;
 String username;
 int distanceTravelled;
 int optimalPath;
+int start_point_x;
 
 // hit left rectangle before starting timer and logging
 boolean hitLeftFirst;
@@ -210,6 +211,8 @@ void nextRectangle(){
     hitLeftFirst = true;
     countOvershoots = 0;
     countUndershoots = 0;
+    distanceTravelled = 0;
+    start_point_x = cursor.x;
   } else {
     count++;
     resultsRow = logData.addRow();
@@ -223,6 +226,8 @@ void nextRectangle(){
     } else {
       resultsRow.setLong("time", totalTime);
     }
+    resultsRow.setInt("start_point_x", start_point_x);
+    resultsRow.setInt("end_point_x", cursor.x);
     resultsRow.setInt("width", rectWidth);
     resultsRow.setInt("distance", rectDist);
     resultsRow.setInt("optimal_path", optimalPath);
@@ -234,6 +239,7 @@ void nextRectangle(){
     countOvershoots = 0;
     countUndershoots = 0;
     distanceTravelled = 0;
+    start_point_x = cursor.x;
   }
 }
 
@@ -300,6 +306,8 @@ void setupLogTable() {
     logData.addColumn("test");
     logData.addColumn("trial#");
     logData.addColumn("iteration");
+    logData.addColumn("start_point_x");
+    logData.addColumn("end_point_x");
     logData.addColumn("time");
     logData.addColumn("width");
     logData.addColumn("distance");
