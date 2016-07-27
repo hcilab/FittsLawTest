@@ -186,18 +186,19 @@ void generateRectangles(){
 }
 
 void nextRectangle(){
-  optimalPath = rectDist - rectWidth - 2;
   if(nextRect.equals(leftRect)){
     prevRect = leftRect;
     nextRect = rightRect; 
     onRightSide = false;
     onLeftSide = true;
+    optimalPath = abs((nextRect.x - rectWidth/2 - 1) - (cursor.x));
   } 
   else{
     prevRect = rightRect;
     nextRect = leftRect;
     onRightSide = true;
     onLeftSide = false;
+    optimalPath = abs((nextRect.x + rectWidth/2 - 1) - (cursor.x));
   }
 
   movingLeft = false;
