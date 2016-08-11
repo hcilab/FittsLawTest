@@ -75,6 +75,7 @@ String username;
 int distanceTravelled;
 int optimalPath;
 int start_point_x;
+int fittsDistance;
 
 // hit left rectangle before starting timer and logging
 boolean hitLeftFirst;
@@ -142,6 +143,7 @@ void setup() {
   movingRight = false;
   countUndershoots = 0;
   distanceTravelled = 0;
+  fittsDistance = 0;
 }
 
 void draw() {
@@ -187,26 +189,12 @@ void generateRectangles(){
 }
 
 void nextRectangle(){
-  if(nextRect.equals(leftRect)){
-    prevRect = leftRect;
-    nextRect = rightRect; 
-    onRightSide = false;
-    onLeftSide = true;
-    optimalPath = abs((nextRect.x - rectWidth/2 - 1) - (cursor.x));
-  } 
-  else{
-    prevRect = rightRect;
-    nextRect = leftRect;
-    onRightSide = true;
-    onLeftSide = false;
-    optimalPath = abs((nextRect.x + rectWidth/2 - 1) - (cursor.x));
-  }
-
   movingLeft = false;
   movingRight = false;
 
   long totalTime = System.currentTimeMillis() - startTime;
   startTime = System.currentTimeMillis();
+  // do not log the first move to a rectangle (from the starting middle position to the rect)
   if (!hitLeftFirst) {
     hitLeftFirst = true;
     countOvershoots = 0;
@@ -231,6 +219,7 @@ void nextRectangle(){
     resultsRow.setInt("width", rectWidth);
     resultsRow.setInt("distance", rectDist);
     resultsRow.setInt("optimal_path", optimalPath);
+    resultsRow.setInt("fitts_distance", fittsDistance);
     resultsRow.setInt("distance_travelled", distanceTravelled);
     resultsRow.setString("practice", Boolean.toString(practice));
     resultsRow.setString("selection", selectionType.name());
@@ -240,6 +229,23 @@ void nextRectangle(){
     countUndershoots = 0;
     distanceTravelled = 0;
     start_point_x = cursor.x;
+  }
+
+  if(nextRect.equals(leftRect)){
+    prevRect = leftRect;
+    nextRect = rightRect;
+    onRightSide = false;
+    onLeftSide = true;
+    optimalPath = abs((nextRect.x - rectWidth/2 - 1) - (cursor.x));
+    fittsDistance = nextRect.x - cursor.x;
+  }
+  else{
+    prevRect = rightRect;
+    nextRect = leftRect;
+    onRightSide = true;
+    onLeftSide = false;
+    optimalPath = abs((nextRect.x + rectWidth/2 + 1) - (cursor.x));
+    fittsDistance = cursor.x - nextRect.x;
   }
 }
 
@@ -312,6 +318,7 @@ void setupLogTable() {
     logData.addColumn("width");
     logData.addColumn("distance");
     logData.addColumn("optimal_path");
+    logData.addColumn("fitts_distance");
     logData.addColumn("distance_travelled");
     logData.addColumn("practice");
     logData.addColumn("selection");
