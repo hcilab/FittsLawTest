@@ -41,7 +41,8 @@ class EmgManager implements IEmgManager {
   EmgManager() throws MyoNotConnectedException {
     // not directly needed here, just need to make sure one is instantiated
     myo_unused = getMyoSingleton();
-
+    myo_unused.withEmg();
+    
     myoAPI = new MyoAPI();
 
     //firstOver_threshold = options.getIOOptions().getMinInputThreshold();
