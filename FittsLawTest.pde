@@ -159,7 +159,7 @@ void draw() {
   }
 }
 
-void myoOnEmg(Myo myo, long nowMilliseconds, int[] sensorData) {
+void myoOnEmgData(Device myo, long nowMilliseconds, int[] sensorData) {
   emgManager.onEmg(nowMilliseconds, sensorData);
 }
 

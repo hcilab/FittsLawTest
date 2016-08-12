@@ -1,3 +1,5 @@
 trials,width,distance,practice,selection,dwell_time
-2,30,800,true,dwell,3000
-3,50,900,false,keypress,1000
+5,30,800,TRUE,dwell,1000
+5,50,900,TRUE,dwell,1000
+5,30,500,TRUE,dwell,1000
+5,50,250,TRUE,dwell,1000
