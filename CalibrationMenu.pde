@@ -152,7 +152,7 @@ class CalibrationMenu{
         break;
       case COMPLETE:
         text(calibrationMessage, width/2, 200);
-        text("Right Sensor [" + leftSensorID +"]: " + leftSensorReading, width/2,250);
+        text("Left Sensor [" + leftSensorID +"]: " + leftSensorReading, width/2,250);
         text("Right Sensor [" + rightSensorID +"]: " + rightSensorReading, width/2,300);
         text(retryCalibrationComplete, width/2, height - 100);
         break;
