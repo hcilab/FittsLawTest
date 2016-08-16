@@ -413,19 +413,26 @@ void gatherRawInput(){
   HashMap<String, Float> rawInput = emgManager.poll();
    myoLeftMagnitude = rawInput.get(LEFT_DIRECTION_LABEL);
    myoRightMagnitude = rawInput.get(RIGHT_DIRECTION_LABEL);
-   
    float result = myoRightMagnitude - myoLeftMagnitude;
-   if(result > 0.1 ) {
-     direction = Direction.RIGHT;
-     movingRight = true;
-     movingLeft = false;
-   } else if(result < -0.1 ) {
+   float minInputThreshold = 0.1;
+  
+   if(result < 0.1 && result > -0.1) {
+     direction = Direction.NONE;
+     result = 0;
+   } 
+   else if(result < 0) {
      direction = Direction.LEFT;
      movingLeft = true;
      movingRight = false;
-   } else {
-     direction = Direction.NONE;
-     result = 0;
+     result += minInputThreshold; 
+     result *= (1.0f - minInputThreshold);
+   } 
+   else if(result > 0) {
+     direction = Direction.RIGHT;
+     movingRight = true;
+     movingLeft = false;
+     result -= minInputThreshold; 
+     result *= (1.0f - minInputThreshold);
    }
    
    speed = round(abs(result) * 10);
