@@ -88,6 +88,8 @@ GameState gameState;
 boolean onLeftSide;
 boolean onRightSide;
 int countOvershoots;
+boolean stopInTargetOS;
+
 // used for calculating undershoots
 boolean movingLeft;
 boolean movingRight;
@@ -388,7 +390,8 @@ void drawTest() {
   
   if(nextRect.isCursorInside() && speed == 0)
   {
-    stopInTarget = true; 
+    stopInTarget = true;
+    stopInTargetOS = true;
   }
   
   if(!nextRect.isCursorInside() && stopInTarget)
@@ -516,14 +519,34 @@ int loadTestNum() {
 }
 
 public void calculateOvershoots(int x) {
-  if (x < nextRect.x - (rectWidth/2) && onRightSide) {
-    countOvershoots++;
-    onRightSide = false;
-    onLeftSide = true;
-  } else if (x > nextRect.x + (rectWidth/2) && onLeftSide) {
-    countOvershoots++;
-    onLeftSide = false;
-    onRightSide = true;
+  if (x < nextRect.x - (rectWidth/2)) {
+    if(onRightSide){
+      if(!stopInTargetOS){
+        countOvershoots++;
+        println("countOvershoots: " + countOvershoots);
+      }
+      onRightSide = false;
+      onLeftSide = true;
+      stopInTargetOS = false;
+    }
+    else if(onLeftSide){
+      stopInTargetOS = false;
+    }
+
+   
+  } else if (x > nextRect.x + (rectWidth/2)) {
+    if(onLeftSide){
+      if(!stopInTargetOS){
+        countOvershoots++; 
+        println("countOvershoots: " + countOvershoots);
+      }
+      onLeftSide = false;
+      onRightSide = true;
+      stopInTargetOS = false;
+    }
+    else if(onRightSide){
+      stopInTargetOS = false;
+    }
   }
 }
 
