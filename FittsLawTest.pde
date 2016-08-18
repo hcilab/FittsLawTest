@@ -93,6 +93,13 @@ boolean movingLeft;
 boolean movingRight;
 int countUndershoots;
 
+//used for calculating directionChanges
+int directionChanges;
+
+//Used To calculate errors
+int errors;
+boolean stopInTarget;
+
 void setup() {
   fullScreen();
   noCursor();
@@ -144,6 +151,8 @@ void setup() {
   countUndershoots = 0;
   distanceTravelled = 0;
   fittsDistance = 0;
+  directionChanges = 0;
+  stopInTarget = false;
 }
 
 void draw() {
@@ -191,15 +200,17 @@ void generateRectangles(){
 void nextRectangle(){
   movingLeft = false;
   movingRight = false;
-
-  long totalTime = System.currentTimeMillis() - startTime;
-  startTime = System.currentTimeMillis();
+  long endTime = System.currentTimeMillis();
+  long totalTime = endTime - startTime;
+  
   // do not log the first move to a rectangle (from the starting middle position to the rect)
   if (!hitLeftFirst) {
     hitLeftFirst = true;
     countOvershoots = 0;
     countUndershoots = 0;
     distanceTravelled = 0;
+    directionChanges = 0;
+    errors = 0;
     start_point_x = cursor.x;
   } else {
     count++;
@@ -207,13 +218,15 @@ void nextRectangle(){
     resultsRow.setLong("tod", tod);
     resultsRow.setString("username", username);
     resultsRow.setInt("test", testNum);
-    resultsRow.setInt("trial#", rowIndex);
-    resultsRow.setInt("iteration", count);
+    resultsRow.setInt("block", rowIndex);
+    resultsRow.setInt("trial", count);
     if (selectionType == Selection.DWELL) {
-      resultsRow.setLong("time", totalTime-dwellTime);
+      resultsRow.setLong("total_time", totalTime-dwellTime);
     } else {
-      resultsRow.setLong("time", totalTime);
+      resultsRow.setLong("total_time", totalTime);
     }
+    resultsRow.setLong("start_time", startTime);
+    resultsRow.setLong("end_time", endTime);    
     resultsRow.setInt("start_point_x", start_point_x);
     resultsRow.setInt("end_point_x", cursor.x);
     resultsRow.setInt("width", rectWidth);
@@ -223,11 +236,15 @@ void nextRectangle(){
     resultsRow.setInt("distance_travelled", distanceTravelled);
     resultsRow.setString("practice", Boolean.toString(practice));
     resultsRow.setString("selection", selectionType.name());
+    resultsRow.setInt("errors", errors + countOvershoots + countUndershoots);
     resultsRow.setInt("overshoots", countOvershoots);
     resultsRow.setInt("undershoots", countUndershoots);
+    resultsRow.setInt("direction_changes", directionChanges);
     countOvershoots = 0;
     countUndershoots = 0;
     distanceTravelled = 0;
+    directionChanges = 0;
+    errors = 0;
     start_point_x = cursor.x;
   }
 
@@ -247,6 +264,8 @@ void nextRectangle(){
     optimalPath = abs((nextRect.x + rectWidth/2 + 1) - (cursor.x));
     fittsDistance = cursor.x - nextRect.x;
   }
+  
+  startTime = System.currentTimeMillis();
 }
 
 void keyPressed(){
@@ -313,11 +332,13 @@ void setupLogTable() {
     logData.addColumn("tod");
     logData.addColumn("username");
     logData.addColumn("test");
-    logData.addColumn("trial#");
-    logData.addColumn("iteration");
+    logData.addColumn("block");
+    logData.addColumn("trial");
     logData.addColumn("start_point_x");
     logData.addColumn("end_point_x");
-    logData.addColumn("time");
+    logData.addColumn("start_time");
+    logData.addColumn("end_time");
+    logData.addColumn("total_time");
     logData.addColumn("width");
     logData.addColumn("distance");
     logData.addColumn("optimal_path");
@@ -325,8 +346,10 @@ void setupLogTable() {
     logData.addColumn("distance_travelled");
     logData.addColumn("practice");
     logData.addColumn("selection");
+    logData.addColumn("errors");
     logData.addColumn("overshoots");
     logData.addColumn("undershoots");
+    logData.addColumn("direction_changes");
   }
 }
 
@@ -361,6 +384,17 @@ void drawTest() {
 
   if(Selection.DWELL == selectionType){
     checkDwellTime();
+  }
+  
+  if(nextRect.isCursorInside() && speed == 0)
+  {
+    stopInTarget = true; 
+  }
+  
+  if(!nextRect.isCursorInside() && stopInTarget)
+  {
+    errors++;
+    stopInTarget = false;
   }
 
   if(calMenu.isMyoCalibrated()) {
@@ -397,6 +431,8 @@ void loadTableData() {
     countOvershoots = 0;
     countUndershoots = 0;
     distanceTravelled = 0;
+    directionChanges = 0;
+    errors = 0;
     trialInfoRow = trialInfos.getRow(rowIndex);
     
     if (trialInfoRow != null) {
@@ -424,6 +460,10 @@ void gatherRawInput(){
      result = 0;
    } 
    else if(result < 0) {
+     if(movingRight)
+     {
+       directionChanges++; 
+     }
      direction = Direction.LEFT;
      movingLeft = true;
      movingRight = false;
@@ -431,6 +471,10 @@ void gatherRawInput(){
      result *= (1.0f - minInputThreshold);
    } 
    else if(result > 0) {
+     if(movingLeft)
+     {
+       directionChanges++; 
+     }
      direction = Direction.RIGHT;
      movingRight = true;
      movingLeft = false;
