@@ -523,7 +523,6 @@ public void calculateOvershoots(int x) {
     if(onRightSide){
       if(!stopInTargetOS){
         countOvershoots++;
-        println("countOvershoots: " + countOvershoots);
       }
       onRightSide = false;
       onLeftSide = true;
@@ -538,7 +537,6 @@ public void calculateOvershoots(int x) {
     if(onLeftSide){
       if(!stopInTargetOS){
         countOvershoots++; 
-        println("countOvershoots: " + countOvershoots);
       }
       onLeftSide = false;
       onRightSide = true;
