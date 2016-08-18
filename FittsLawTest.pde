@@ -275,6 +275,9 @@ void keyPressed(){
   else if((key == 'R' || key == 'r')  && gameState == GameState.CALIBRATE){
     calMenu.retryCalibration();
   }
+  else if((key == 'l' || key == 'L') && gameState == GameState.CALIBRATE){
+    calMenu.loadCalibration();
+  }
 }
 
 Table loadTrialInfo() {

@@ -1,5 +1,6 @@
 interface IEmgManager {
   boolean registerAction(String label, int sensorID);
+  boolean registerActionFromLoad(String label, int sensorID, float reading);
   HashMap<String, Float> poll();
   void onEmg(long nowMillis, int[] sensorData);
   boolean isCalibrated();
@@ -50,15 +51,24 @@ class EmgManager implements IEmgManager {
     firstOver_rightOver = false;
   }
 
-  boolean registerAction(String label, int snesorID) {
+  boolean registerAction(String label, int sensorID) {
     try {
-     if(snesorID < 0){
+     if(sensorID < 0){
       myoAPI.registerAction(label, 0);
      }
      else{
-       myoAPI.registerActionManual(label, snesorID);
+       myoAPI.registerActionManual(label, sensorID);
      }
 
+    } catch (CalibrationFailedException e) {
+      return false;
+    }
+    return true;
+  }
+
+  boolean registerActionFromLoad(String label, int sensorID, float reading) {
+    try {
+       myoAPI.registerActionFromLoad(label, sensorID, reading);
     } catch (CalibrationFailedException e) {
       return false;
     }
@@ -152,6 +162,10 @@ class EmgManager implements IEmgManager {
 class NullEmgManager implements IEmgManager {
 
   boolean registerAction(String label, int sensorID) {
+    return false;
+  }
+
+  boolean registerActionFromLoad(String label, int sensorID, float reading) {
     return false;
   }
 

@@ -4,6 +4,8 @@ enum State {
   PICK_SENSOR,
   COMPLETE,
   FAILURE,
+  LOAD_CALIBRATION_FAILURE,
+  LOAD_CALIBRATION_SUCCESS,
 }
 
 class CalibrationMenu{
@@ -11,8 +13,14 @@ class CalibrationMenu{
   String retryCalibrationFailure;
   String calibrationMessage;
   String sensorMessage;
-  String chooseCalibration;
+  String autoCalibration;
+  String manualCalibration;
+  String loadCalibration;
   String skipMyoCalibration;
+  String fileDoesNotExist;
+  String failedToLoadFile;
+  String leftText;
+  String rightText;
   int sensorToRegister;
   boolean isMyoCalibrated;
   CalibrationMethod calMethod;
@@ -25,7 +33,9 @@ class CalibrationMenu{
     
   public CalibrationMenu(ArrayList<String> _registerAction) {
     this.actionsToRegister = _registerAction;
-    this.chooseCalibration = "press 'a' for auto calibration Press 'm' for manual calibration"; 
+    this.autoCalibration = "Press 'a' for auto calibration";
+    this.manualCalibration = "Press 'm' for manual calibration";
+    this.loadCalibration = "Press 'l' to load an existing calibration";
     this.skipMyoCalibration = "Press 's' to skip Myo Calibration";
     this.retryCalibrationComplete = "If you do not like this calibration, press 'r' to retry";
     this.retryCalibrationFailure = "Myo Electric Calibration Failed, Press 'r' to retry";
@@ -126,7 +136,7 @@ class CalibrationMenu{
   }
   
   public void retryCalibration(){
-    if(state == State.FAILURE || state == State.COMPLETE){
+    if(state == State.FAILURE || state == State.COMPLETE || state == State.LOAD_CALIBRATION_FAILURE || state == State.LOAD_CALIBRATION_SUCCESS){
       actionsToRegister.clear();
       actionsToRegister.add(LEFT_DIRECTION_LABEL);
       actionsToRegister.add(RIGHT_DIRECTION_LABEL);
@@ -138,7 +148,9 @@ class CalibrationMenu{
     text("Myo Calibration", width/2, 100);
      switch (state) {
       case AUTO_MANUAL:
-        text(chooseCalibration, width/2, 200);
+        text(autoCalibration, width/2, 200);
+        text(manualCalibration, width/2, 250);
+        text(loadCalibration, width/2, 300);
         text(skipMyoCalibration,width/2,height - 100);
         break;
       case SPACEBAR_CALIBRATION:
@@ -160,7 +172,55 @@ class CalibrationMenu{
         text(retryCalibrationFailure, width/2, 200);
         text(skipMyoCalibration,width/2,height - 100);
         break;
+      case LOAD_CALIBRATION_FAILURE:
+        text(failedToLoadFile, width/2, 200);
+        text(fileDoesNotExist, width/2, 250);
+        text(retryCalibrationFailure, width/2, height - 100);
+      case LOAD_CALIBRATION_SUCCESS:
+        text(leftText, width/2, 200);
+        text(rightText, width/2, 250);
+        text(calibrationMessage, width/2, 350);
+        text(retryCalibrationComplete, width/2, height - 100);
      }
     fill(0);
+  }
+
+  public void loadCalibration(){
+    if (fileExists("calibration.csv")) {
+      registerActionLoad();
+    }
+    else {
+      failedToLoadFile = "Failed to load calibration file";
+      fileDoesNotExist = "File 'calibration.csv' does not exist";
+      state = state.LOAD_CALIBRATION_FAILURE;
+    }
+  }
+
+  public void registerActionLoad(){
+    Table calibrationData = loadTable("calibration.csv", "header");
+    TableRow dataRow = calibrationData.getRow(0);
+
+    String labelLeft = "LEFT";
+    int leftSensorID = Math.round(dataRow.getFloat("left_sensor"));
+    Float leftSensorReading = dataRow.getFloat("left_reading");
+
+    String labelRight = "RIGHT";
+    int rightSensorID = Math.round(dataRow.getFloat("right_sensor"));
+    Float rightSensorReading = dataRow.getFloat("right_reading");
+
+    leftText = "Left sensor [" + leftSensorID + "]: " + leftSensorReading;
+    rightText = "Right sensor [" + rightSensorID + "]: " + rightSensorReading;
+
+    boolean leftSuccess = emgManager.registerActionFromLoad(labelLeft, leftSensorID, leftSensorReading);
+    boolean rightSuccess = emgManager.registerActionFromLoad(labelRight, rightSensorID, rightSensorReading);
+
+    if (leftSuccess && rightSuccess) {
+      calibrationMessage = "Well done the Calibration is Complete, Press 's' to start the Test";
+      isMyoCalibrated = true;
+      state = state.LOAD_CALIBRATION_SUCCESS;
+    } else {
+      fileDoesNotExist = "Data could not be properly loaded";
+      state = state.LOAD_CALIBRATION_FAILURE;
+    }
   }
 }
