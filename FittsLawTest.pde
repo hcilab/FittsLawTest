@@ -321,7 +321,7 @@ void getNewRowData() {
   numTrials = trialInfoRow.getInt("trials");
   rectWidth = trialInfoRow.getInt("width");
   rectDist = trialInfoRow.getInt("distance");
-  practice = trialInfoRow.getString("practice").equals("true") ? true : false;
+  practice = trialInfoRow.getString("practice").equalsIgnoreCase("true") ? true : false;
   selectionType = trialInfoRow.getString("selection").equals("dwell") ? Selection.DWELL : Selection.KEY_PRESS;
   dwellTime = trialInfoRow.getInt("dwell_time");
 }
