@@ -94,6 +94,8 @@ boolean stopInTargetOS;
 boolean movingLeft;
 boolean movingRight;
 int countUndershoots;
+boolean notMoving;
+boolean firstMove;
 
 //used for calculating directionChanges
 int directionChanges;
@@ -204,6 +206,8 @@ void nextRectangle(){
   movingRight = false;
   long endTime = System.currentTimeMillis();
   long totalTime = endTime - startTime;
+  firstMove = true;
+  
   
   // do not log the first move to a rectangle (from the starting middle position to the rect)
   if (!hitLeftFirst) {
@@ -457,7 +461,7 @@ void gatherRawInput(){
    myoRightMagnitude = rawInput.get(RIGHT_DIRECTION_LABEL);
    float result = myoRightMagnitude - myoLeftMagnitude;
    float minInputThreshold = 0.1;
-  
+   
    if(result < 0.1 && result > -0.1) {
      direction = Direction.NONE;
      result = 0;
@@ -472,6 +476,8 @@ void gatherRawInput(){
      movingRight = false;
      result += minInputThreshold; 
      result *= (1.0f - minInputThreshold);
+     notMoving = false;
+     firstMove = false;
    } 
    else if(result > 0) {
      if(movingLeft)
@@ -483,6 +489,8 @@ void gatherRawInput(){
      movingLeft = false;
      result -= minInputThreshold; 
      result *= (1.0f - minInputThreshold);
+     notMoving = false;
+     firstMove = false;
    }
    
    speed = round(abs(result) * 10);
@@ -549,11 +557,15 @@ public void calculateOvershoots(int x) {
 }
 
 public void calculateUndershoots(int x) {
-  if (x > nextRect.x + (rectWidth/2) && speed == 0 && onRightSide && movingLeft) {
-    countUndershoots++;
-    movingLeft = false;
-  } else if (x < nextRect.x - (rectWidth/2) && speed == 0 && onLeftSide && movingRight) {
-    countUndershoots++;
-    movingRight = false;
+  if(!notMoving && !firstMove)
+  {
+    if (x > nextRect.x + (rectWidth/2) && speed == 0 && onRightSide && movingLeft) {
+      countUndershoots++;
+      movingLeft = false;
+    } else if (x < nextRect.x - (rectWidth/2) && speed == 0 && onLeftSide && movingRight) {
+      countUndershoots++;
+      movingRight = false;
+    }
+    notMoving = true;
   }
 }
