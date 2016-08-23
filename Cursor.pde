@@ -58,15 +58,23 @@ class Cursor{
     this.lastX = prevX;
     this.x = x;
     if (x > lastX) {
+      direction = Direction.RIGHT;
       movingRight = true;
       movingLeft = false;
       speed = 1;
+      firstMove = false;
+      notMoving = false;
     } else if (x < lastX) {
+      direction = Direction.LEFT;
       movingLeft = true;
       movingRight = false;
       speed = -1;
+      notMoving = false;
+      firstMove = false;
     } else {
+      direction = Direction.NONE;
       speed = 0;
+      notMoving = true;
     }
   }
 }

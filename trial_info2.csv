@@ -1,0 +1,3 @@
+trials,width,distance,practice,selection,dwell_time
+6,200,200,TRUE,dwell,2000
+6,50,400,FALSE,dwell,2000

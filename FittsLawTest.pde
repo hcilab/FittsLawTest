@@ -62,7 +62,6 @@ int rectWidth;
 int rectDist;
 boolean practice;
 Selection selectionType;
-int testNum;
 int dwellTime;
 
 // Data to be saved at the end of all trials;
@@ -132,7 +131,6 @@ void setup() {
 
   username = loadUsername();
   setupLogTable();
-  testNum = loadTestNum();
 
   generateRectangles();
   cursor = new Cursor(width/2,height/2,10);
@@ -223,9 +221,9 @@ void nextRectangle(){
     resultsRow = logData.addRow();
     resultsRow.setLong("tod", tod);
     resultsRow.setString("username", username);
-    resultsRow.setInt("test", testNum);
     resultsRow.setInt("block", rowIndex);
     resultsRow.setInt("trial", count);
+    resultsRow.setString("condition", "Simple");
     if (selectionType == Selection.DWELL) {
       resultsRow.setLong("total_time", totalTime-dwellTime);
     } else {
@@ -235,13 +233,14 @@ void nextRectangle(){
     resultsRow.setLong("end_time", endTime);    
     resultsRow.setInt("start_point_x", start_point_x);
     resultsRow.setInt("end_point_x", cursor.x);
-    resultsRow.setInt("width", rectWidth);
+    resultsRow.setInt("gap_width", rectWidth);
     resultsRow.setInt("distance", rectDist);
     resultsRow.setInt("optimal_path", optimalPath);
     resultsRow.setInt("fitts_distance", fittsDistance);
     resultsRow.setInt("distance_travelled", distanceTravelled);
     resultsRow.setString("practice", Boolean.toString(practice));
     resultsRow.setString("selection", selectionType.name());
+    println("errors: " + errors + " overshoots: " + countOvershoots + " undershoots: " + countUndershoots);
     resultsRow.setInt("errors", errors + countOvershoots + countUndershoots);
     resultsRow.setInt("overshoots", countOvershoots);
     resultsRow.setInt("undershoots", countUndershoots);
@@ -270,7 +269,8 @@ void nextRectangle(){
     optimalPath = abs((nextRect.x + rectWidth/2 + 1) - (cursor.x));
     fittsDistance = cursor.x - nextRect.x;
   }
-  
+  stopInTarget = false;
+  stopInTargetOS = false;
   startTime = System.currentTimeMillis();
 }
 
@@ -337,15 +337,15 @@ void setupLogTable() {
     logData = new Table();
     logData.addColumn("tod");
     logData.addColumn("username");
-    logData.addColumn("test");
     logData.addColumn("block");
     logData.addColumn("trial");
+    logData.addColumn("condition");
     logData.addColumn("start_point_x");
     logData.addColumn("end_point_x");
     logData.addColumn("start_time");
     logData.addColumn("end_time");
     logData.addColumn("total_time");
-    logData.addColumn("width");
+    logData.addColumn("gap_width");
     logData.addColumn("distance");
     logData.addColumn("optimal_path");
     logData.addColumn("fitts_distance");
@@ -465,6 +465,7 @@ void gatherRawInput(){
    if(result < 0.1 && result > -0.1) {
      direction = Direction.NONE;
      result = 0;
+     notMoving = true;
    } 
    else if(result < 0) {
      if(movingRight)
@@ -516,16 +517,6 @@ String loadUsername() {
   return username;
 }
 
-int loadTestNum() {
-  if (logData.getRowCount() > 0) {
-    TableRow lastRow = logData.getRow(logData.getRowCount()-1);
-    int num = lastRow.getInt("test") + 1;
-    return num;
-  } else {
-    return 1;
-  }
-}
-
 public void calculateOvershoots(int x) {
   if (x < nextRect.x - (rectWidth/2)) {
     if(onRightSide){
@@ -557,7 +548,7 @@ public void calculateOvershoots(int x) {
 }
 
 public void calculateUndershoots(int x) {
-  if(!notMoving && !firstMove)
+  if(notMoving && !firstMove)
   {
     if (x > nextRect.x + (rectWidth/2) && speed == 0 && onRightSide && movingLeft) {
       countUndershoots++;
@@ -566,6 +557,7 @@ public void calculateUndershoots(int x) {
       countUndershoots++;
       movingRight = false;
     }
-    notMoving = true;
+    notMoving = false;
+    firstMove = true;
   }
 }
