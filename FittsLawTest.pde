@@ -35,6 +35,8 @@ enum CalibrationMethod{
 IEmgManager emgManager;
 CalibrationMenu calMenu;
 
+EmgSamplingPolicy samplingPolicy;
+
 final String LEFT_DIRECTION_LABEL = "LEFT";
 final String RIGHT_DIRECTION_LABEL = "RIGHT";
 
@@ -113,6 +115,7 @@ void setup() {
   
   gameState = GameState.CALIBRATE;
   emgManager = new NullEmgManager();
+  samplingPolicy = EmgSamplingPolicy.DIFFERENCE;
   registerAction = new ArrayList<String>();
   registerAction.add(LEFT_DIRECTION_LABEL);
   registerAction.add(RIGHT_DIRECTION_LABEL);

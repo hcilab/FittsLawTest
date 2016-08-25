@@ -222,5 +222,22 @@ class CalibrationMenu{
       fileDoesNotExist = "Data could not be properly loaded";
       state = state.LOAD_CALIBRATION_FAILURE;
     }
+
+    switch (dataRow.getString("input_type"))
+    {
+      case ("DIFFERENCE"):
+        samplingPolicy = EmgSamplingPolicy.DIFFERENCE;
+        break;
+      case ("MAX"):
+        samplingPolicy = EmgSamplingPolicy.MAX;
+        break;
+      case ("FIRST_OVER"):
+        samplingPolicy = EmgSamplingPolicy.FIRST_OVER;
+        break;
+      default:
+        println("[ERROR] Unrecognized emg sampling policy while parsing calibration.csv, defaulting to DIFFERENCE");
+        samplingPolicy = EmgSamplingPolicy.DIFFERENCE;
+        break;
+    }
   }
 }

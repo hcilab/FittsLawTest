@@ -85,7 +85,6 @@ class EmgManager implements IEmgManager {
     HashMap<String, Float> toReturn = new HashMap<String, Float>();
     //toReturn.put(JUMP_DIRECTION_LABEL, jump);
 
-    EmgSamplingPolicy samplingPolicy = EmgSamplingPolicy.DIFFERENCE;
     if (samplingPolicy == EmgSamplingPolicy.DIFFERENCE)
     {
       if (left > right) {
