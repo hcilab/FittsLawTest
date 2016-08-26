@@ -21,6 +21,7 @@ class CalibrationMenu{
   String failedToLoadFile;
   String leftText;
   String rightText;
+  String inputText;
   int sensorToRegister;
   boolean isMyoCalibrated;
   CalibrationMethod calMethod;
@@ -179,7 +180,8 @@ class CalibrationMenu{
       case LOAD_CALIBRATION_SUCCESS:
         text(leftText, width/2, 200);
         text(rightText, width/2, 250);
-        text(calibrationMessage, width/2, 350);
+        text(inputText, width/2, 300);
+        text(calibrationMessage, width/2, 400);
         text(retryCalibrationComplete, width/2, height - 100);
      }
     fill(0);
@@ -210,6 +212,8 @@ class CalibrationMenu{
 
     leftText = "Left sensor [" + leftSensorID + "]: " + leftSensorReading;
     rightText = "Right sensor [" + rightSensorID + "]: " + rightSensorReading;
+
+    inputText = "Input type: " + dataRow.getString("input_type");
 
     boolean leftSuccess = emgManager.registerActionFromLoad(labelLeft, leftSensorID, leftSensorReading);
     boolean rightSuccess = emgManager.registerActionFromLoad(labelRight, rightSensorID, rightSensorReading);
